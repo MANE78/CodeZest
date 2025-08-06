@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeForge Studio - Advanced Code Editor</title>
     <meta name="description" content="Professional online code editor with large file support, file management, and compression">
+    <meta name="theme-color" content="#3b82f6">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -42,6 +47,8 @@
             background: var(--light-bg);
             transition: all 0.3s ease;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body.dark-mode {
@@ -92,6 +99,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 0.5rem;
+            -webkit-overflow-scrolling: touch;
         }
 
         .sidebar-section {
@@ -139,6 +147,7 @@
             background: #f9fafb;
             border-bottom: 1px solid #e5e7eb;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         body.dark-mode .editor-tabs {
@@ -155,6 +164,7 @@
             align-items: center;
             gap: 0.5rem;
             transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body.dark-mode .editor-tab {
@@ -191,6 +201,10 @@
             font-family: 'Fira Code', 'Consolas', monospace;
         }
 
+        .CodeMirror-scroll {
+            -webkit-overflow-scrolling: touch;
+        }
+
         /* File Tree */
         .file-tree {
             margin-top: 0.5rem;
@@ -204,6 +218,7 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .file-item:hover {
@@ -228,6 +243,7 @@
             width: 1.25rem;
             margin-right: 0.5rem;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .file-name {
@@ -243,6 +259,7 @@
             transition: opacity 0.2s;
             display: flex;
             gap: 0.25rem;
+            flex-shrink: 0;
         }
 
         .file-item:hover .file-actions {
@@ -253,6 +270,7 @@
             padding: 0.25rem;
             border-radius: 0.25rem;
             transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .file-action-btn:hover {
@@ -289,11 +307,15 @@
 
         .compression-info {
             flex: 1;
+            min-width: 0;
         }
 
         .compression-name {
             font-size: 0.875rem;
             font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .compression-size {
@@ -332,6 +354,7 @@
             font-size: 0.875rem;
             border: none;
             background: transparent;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .toolbar-btn:hover {
@@ -355,6 +378,7 @@
             width: 1px;
             height: 1.5rem;
             background: #e5e7eb;
+            flex-shrink: 0;
         }
 
         body.dark-mode .toolbar-separator {
@@ -370,6 +394,8 @@
             align-items: center;
             justify-content: space-between;
             font-size: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .status-item {
@@ -393,6 +419,7 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s;
+            padding: 1rem;
         }
 
         .modal.active {
@@ -404,12 +431,13 @@
             background: white;
             border-radius: 0.5rem;
             padding: 1.5rem;
-            max-width: 500px;
-            width: 90%;
+            max-width: 600px;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
             transform: scale(0.9);
             transition: transform 0.3s;
+            -webkit-overflow-scrolling: touch;
         }
 
         .modal.active .modal-content {
@@ -437,6 +465,7 @@
             border-radius: 0.375rem;
             cursor: pointer;
             transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .modal-close:hover {
@@ -468,6 +497,9 @@
             border-radius: 0.375rem;
             font-size: 0.875rem;
             transition: all 0.2s;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .form-input:focus,
@@ -503,6 +535,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-primary {
@@ -549,6 +582,7 @@
             opacity: 0;
             transition: all 0.3s;
             z-index: 2000;
+            max-width: 90%;
         }
 
         .toast.show {
@@ -558,6 +592,7 @@
 
         .toast-icon {
             font-size: 1.25rem;
+            flex-shrink: 0;
         }
 
         .toast.success .toast-icon {
@@ -609,7 +644,178 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        body.dark-mode .progress-bar {
+            background: #374151;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        /* File Selection */
+        .file-selection {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .file-selection:hover {
+            border-color: var(--primary-color);
+        }
+
+        .file-selection.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .selected-files {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .selected-file {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        body.dark-mode .selected-file {
+            background: #374151;
+        }
+
+        /* Compression Options */
+        .compression-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .compression-option {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .compression-option {
+            border-color: #374151;
+        }
+
+        .compression-option:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .compression-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .compression-option-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .compression-option-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .compression-option-desc {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        body.dark-mode .compression-option-desc {
+            color: #9ca3af;
+        }
+
+        /* Editor Files Section */
+        .editor-files-section {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        body.dark-mode .editor-files-section {
+            background: #1f2937;
+        }
+
+        .editor-files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .editor-file-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .editor-file-item {
+            background: #111827;
+            border-color: #374151;
+        }
+
+        .editor-file-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .editor-file-item.selected {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .editor-file-checkbox {
+            margin-right: 0.5rem;
+        }
+
+        .editor-file-icon {
+            margin-right: 0.5rem;
+            color: #6b7280;
+        }
+
+        .editor-file-name {
+            flex: 1;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Mobile Optimizations */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
@@ -618,6 +824,7 @@
                 height: 100%;
                 transform: translateX(-100%);
                 box-shadow: 4px 0 6px -1px rgba(0, 0, 0, 0.1);
+                z-index: 100;
             }
 
             .sidebar.open {
@@ -626,6 +833,81 @@
 
             .sidebar-toggle {
                 display: block;
+            }
+
+            .toolbar {
+                padding: 0.5rem;
+            }
+
+            .toolbar-btn span {
+                display: none;
+            }
+
+            .modal-content {
+                padding: 1rem;
+            }
+
+            .compression-options {
+                grid-template-columns: 1fr;
+            }
+
+            .editor-files-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toast {
+                left: 1rem;
+                right: 1rem;
+                bottom: 2rem;
+            }
+
+            .status-bar {
+                font-size: 0.625rem;
+            }
+
+            .ad-container {
+                display: none;
+            }
+        }
+
+        /* Touch Optimizations */
+        @media (hover: none) {
+            .toolbar-btn,
+            .file-action-btn,
+            .btn,
+            .modal-close,
+            .compression-option,
+            .editor-file-item {
+                position: relative;
+            }
+
+            .toolbar-btn::after,
+            .file-action-btn::after,
+            .btn::after,
+            .modal-close::after,
+            .compression-option::after,
+            .editor-file-item::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.1);
+                border-radius: inherit;
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+                transition: all 0.2s;
+            }
+
+            .toolbar-btn:active::after,
+            .file-action-btn:active::after,
+            .btn:active::after,
+            .modal-close:active::after,
+            .compression-option:active::after,
+            .editor-file-item:active::after {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
             }
         }
 
@@ -677,6 +959,37 @@
 
         .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
         .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -685,7 +998,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="flex items-center gap-2">
-                    <i class="fas fa-code text-blue-600 text-xl"></i>
+                    <i class="fas fa-bolt text-blue-600 text-xl"></i>
                     <span class="font-semibold text-lg">CodeForge</span>
                 </div>
                 <button class="sidebar-toggle p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" onclick="toggleSidebar()">
@@ -718,7 +1031,7 @@
                     <div class="compression-section">
                         <button class="btn btn-primary w-full text-xs mb-2" onclick="showCompressionModal()">
                             <i class="fas fa-file-archive"></i>
-                            Compress File
+                            Compress Files
                         </button>
                         <div id="compressedFiles">
                             <!-- Compressed files will be listed here -->
@@ -732,15 +1045,15 @@
                     <div class="space-y-1">
                         <button class="toolbar-btn w-full justify-start" onclick="formatCode()">
                             <i class="fas fa-magic"></i>
-                            Format Code
+                            <span>Format Code</span>
                         </button>
                         <button class="toolbar-btn w-full justify-start" onclick="minifyCode()">
                             <i class="fas fa-compress-alt"></i>
-                            Minify Code
+                            <span>Minify Code</span>
                         </button>
                         <button class="toolbar-btn w-full justify-start" onclick="beautifyCode()">
                             <i class="fas fa-expand-alt"></i>
-                            Beautify Code
+                            <span>Beautify Code</span>
                         </button>
                     </div>
                 </div>
@@ -773,34 +1086,40 @@
                 <div class="flex items-center gap-2">
                     <button class="toolbar-btn" onclick="editor.undo()" title="Undo">
                         <i class="fas fa-undo"></i>
+                        <span>Undo</span>
                     </button>
                     <button class="toolbar-btn" onclick="editor.redo()" title="Redo">
                         <i class="fas fa-redo"></i>
+                        <span>Redo</span>
                     </button>
                     <div class="toolbar-separator"></div>
                     <button class="toolbar-btn" onclick="editor.execCommand('find')" title="Search">
                         <i class="fas fa-search"></i>
+                        <span>Search</span>
                     </button>
                     <button class="toolbar-btn" onclick="editor.execCommand('replace')" title="Replace">
                         <i class="fas fa-exchange-alt"></i>
+                        <span>Replace</span>
                     </button>
                     <div class="toolbar-separator"></div>
                     <button class="toolbar-btn" onclick="copyCode()" title="Copy">
                         <i class="fas fa-copy"></i>
+                        <span>Copy</span>
                     </button>
                     <button class="toolbar-btn" onclick="pasteCode()" title="Paste">
                         <i class="fas fa-paste"></i>
+                        <span>Paste</span>
                     </button>
                 </div>
                 
                 <div class="flex items-center gap-2 ml-auto">
                     <button class="toolbar-btn primary" onclick="saveFile()">
                         <i class="fas fa-save"></i>
-                        Save
+                        <span>Save</span>
                     </button>
                     <button class="toolbar-btn" onclick="togglePreview()">
                         <i class="fas fa-eye"></i>
-                        Preview
+                        <span>Preview</span>
                     </button>
                 </div>
             </div>
@@ -821,7 +1140,7 @@
                     <div class="editor-tabs">
                         <div class="editor-tab active">
                             <i class="fas fa-eye"></i>
-                            Preview
+                            <span>Preview</span>
                         </div>
                     </div>
                     <div class="editor-content">
@@ -833,18 +1152,20 @@
             <!-- Status Bar -->
             <div class="status-bar">
                 <div class="status-item">
+                    <i class="fas fa-location-arrow"></i>
                     <span id="cursorPosition">Ln 1, Col 1</span>
                 </div>
                 <div class="status-item">
+                    <i class="fas fa-file"></i>
                     <span id="fileSize">0 bytes</span>
                 </div>
                 <div class="status-item">
+                    <i class="fas fa-code"></i>
                     <span id="languageMode">Plain Text</span>
                 </div>
                 <div class="status-item">
-                    <span id="saveStatus" class="text-green-400">
-                        <i class="fas fa-check-circle"></i> Saved
-                    </span>
+                    <i class="fas fa-check-circle text-green-400"></i>
+                    <span id="saveStatus">Saved</span>
                 </div>
             </div>
         </main>
@@ -906,18 +1227,58 @@
     <div class="modal" id="compressionModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Compress File</h2>
+                <h2 class="modal-title">Compress Files</h2>
                 <button class="modal-close" onclick="closeModal('compressionModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form onsubmit="compressFile(event)">
+            <form onsubmit="compressFiles(event)">
                 <div class="form-group">
-                    <label class="form-label">Select File</label>
-                    <select class="form-select" id="compressFileSelect" required>
-                        <!-- Files will be populated here -->
-                    </select>
+                    <label class="form-label">Archive Name</label>
+                    <input type="text" class="form-input" id="archiveName" placeholder="Enter archive name..." required>
                 </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Select Files Source</label>
+                    <div class="compression-options">
+                        <div class="compression-option" onclick="selectCompressionSource('editor')">
+                            <div class="compression-option-icon">
+                                <i class="fas fa-file-code"></i>
+                            </div>
+                            <div class="compression-option-title">Editor Files</div>
+                            <div class="compression-option-desc">Select from files in the editor</div>
+                        </div>
+                        <div class="compression-option" onclick="selectCompressionSource('upload')">
+                            <div class="compression-option-icon">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div class="compression-option-title">Upload Files</div>
+                            <div class="compression-option-desc">Upload files from your device</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Files Section -->
+                <div id="editorFilesSection" class="editor-files-section hidden">
+                    <label class="form-label">Select Editor Files</label>
+                    <div class="editor-files-grid" id="editorFilesGrid">
+                        <!-- Editor files will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Upload Files Section -->
+                <div id="uploadFilesSection" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label">Upload Files</label>
+                        <div class="file-selection" id="fileSelection">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                            <p class="text-sm text-gray-600">Drag and drop files here or click to select</p>
+                            <input type="file" id="compressionFileInput" class="hidden" multiple accept=".html,.css,.js,.json,.txt,.md,.py,.java,.cpp,.c,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.vue,.scss,.sass,.less">
+                            <div class="selected-files" id="selectedFiles"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">Compression Level</label>
                     <select class="form-select" id="compressionLevel">
@@ -935,13 +1296,13 @@
                     </select>
                 </div>
                 <div id="compressionProgress" class="hidden">
-                    <div class="bg-gray-200 rounded-full h-2 mb-2">
-                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
                     </div>
-                    <p class="text-sm text-gray-600 text-center">Compressing...</p>
+                    <p class="text-sm text-gray-600 text-center mt-2">Compressing...</p>
                 </div>
                 <div id="compressionResults" class="hidden">
-                    <div class="bg-gray-50 rounded p-3 space-y-1">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded p-3 space-y-1">
                         <div class="flex justify-between text-sm">
                             <span>Original Size:</span>
                             <span id="originalSize">0 bytes</span>
@@ -971,9 +1332,9 @@
     </div>
 
     <!-- Ad Container (Bottom Right Corner) -->
-    <div class="ad-container fixed bottom-4 right-4 w-64 h-32 shadow-lg z-50">
+    <div class="ad-container fixed bottom-4 right-4 w-64 h-32 shadow-lg z-50 hidden md:block">
         <i class="fas fa-ad mr-2"></i>
-        Advertisement
+        <span>Advertisement</span>
     </div>
 
     <!-- Scripts -->
@@ -992,6 +1353,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script>
         // File System Manager
@@ -1161,7 +1523,7 @@
                 const file = this.getActiveFile();
                 if (file) {
                     document.getElementById('fileSize').textContent = this.formatFileSize(file.size);
-                    document.getElementById('saveStatus').innerHTML = '<i class="fas fa-check-circle"></i> Saved';
+                    document.getElementById('saveStatus').textContent = 'Saved';
                     document.getElementById('saveStatus').className = 'text-green-400';
                 }
             }
@@ -1275,7 +1637,7 @@
                     item.className = 'compression-item';
                     item.innerHTML = `
                         <div class="compression-info">
-                            <div class="compression-name">${file.name}</div>
+                            <div class="compression-name truncate">${file.name}</div>
                             <div class="compression-size">${this.formatFileSize(file.compressedSize)}</div>
                         </div>
                         <div class="flex gap-1">
@@ -1323,7 +1685,7 @@
             const file = fileManager.getActiveFile();
             if (file) {
                 fileManager.updateFile(file.id, editor.getValue());
-                document.getElementById('saveStatus').innerHTML = '<i class="fas fa-edit"></i> Unsaved';
+                document.getElementById('saveStatus').textContent = 'Unsaved';
                 document.getElementById('saveStatus').className = 'text-yellow-400';
             }
             updateFileSize();
@@ -1347,31 +1709,198 @@
             });
         });
 
+        // Compression variables
+        let compressionSource = '';
+        let selectedEditorFiles = new Set();
+        let selectedUploadFiles = new Set();
+
+        // Compression source selection
+        function selectCompressionSource(source) {
+            compressionSource = source;
+            
+            // Update UI
+            document.querySelectorAll('.compression-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Show/hide sections
+            if (source === 'editor') {
+                document.getElementById('editorFilesSection').classList.remove('hidden');
+                document.getElementById('uploadFilesSection').classList.add('hidden');
+                populateEditorFiles();
+            } else {
+                document.getElementById('editorFilesSection').classList.add('hidden');
+                document.getElementById('uploadFilesSection').classList.remove('hidden');
+            }
+        }
+
+        // Populate editor files
+        function populateEditorFiles() {
+            const grid = document.getElementById('editorFilesGrid');
+            grid.innerHTML = '';
+            
+            fileManager.files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'editor-file-item';
+                item.onclick = () => toggleEditorFile(file.id);
+                
+                item.innerHTML = `
+                    <input type="checkbox" class="editor-file-checkbox" id="file-${file.id}">
+                    <i class="${fileManager.getFileIcon(file.type)} editor-file-icon"></i>
+                    <span class="editor-file-name truncate">${file.name}</span>
+                `;
+                
+                grid.appendChild(item);
+            });
+        }
+
+        // Toggle editor file selection
+        function toggleEditorFile(fileId) {
+            const checkbox = document.getElementById(`file-${fileId}`);
+            const item = checkbox.closest('.editor-file-item');
+            
+            if (selectedEditorFiles.has(fileId)) {
+                selectedEditorFiles.delete(fileId);
+                checkbox.checked = false;
+                item.classList.remove('selected');
+            } else {
+                selectedEditorFiles.add(fileId);
+                checkbox.checked = true;
+                item.classList.add('selected');
+            }
+        }
+
+        // Upload file selection
+        const fileSelection = document.getElementById('fileSelection');
+        const compressionFileInput = document.getElementById('compressionFileInput');
+
+        fileSelection.addEventListener('click', () => {
+            compressionFileInput.click();
+        });
+
+        fileSelection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileSelection.classList.add('drag-over');
+        });
+
+        fileSelection.addEventListener('dragleave', () => {
+            fileSelection.classList.remove('drag-over');
+        });
+
+        fileSelection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileSelection.classList.remove('drag-over');
+            
+            Array.from(e.dataTransfer.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    const fileData = {
+                        name: file.name,
+                        content: content,
+                        type: extension,
+                        size: file.size,
+                        source: 'upload'
+                    };
+                    selectedUploadFiles.add(fileData);
+                    updateSelectedUploadFiles();
+                };
+                reader.readAsText(file);
+            });
+        });
+
+        compressionFileInput.addEventListener('change', (e) => {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    const fileData = {
+                        name: file.name,
+                        content: content,
+                        type: extension,
+                        size: file.size,
+                        source: 'upload'
+                    };
+                    selectedUploadFiles.add(fileData);
+                    updateSelectedUploadFiles();
+                };
+                reader.readAsText(file);
+            });
+        });
+
+        function updateSelectedUploadFiles() {
+            const container = document.getElementById('selectedFiles');
+            container.innerHTML = '';
+            
+            selectedUploadFiles.forEach(file => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'selected-file';
+                fileElement.innerHTML = `
+                    <i class="fas fa-upload text-xs text-blue-500"></i>
+                    <span class="truncate">${file.name}</span>
+                    <button class="file-action-btn" onclick="removeSelectedUploadFile('${file.name}')" title="Remove">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(fileElement);
+            });
+        }
+
+        function removeSelectedUploadFile(fileName) {
+            selectedUploadFiles.forEach(file => {
+                if (file.name === fileName) {
+                    selectedUploadFiles.delete(file);
+                }
+            });
+            updateSelectedUploadFiles();
+        }
+
         // UI Functions
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('collapsed');
+            
+            // Close sidebar on mobile after toggle
+            if (window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {
+                setTimeout(() => {
+                    sidebar.classList.remove('open');
+                }, 300);
+            }
         }
 
         function showNewFileModal() {
             document.getElementById('newFileModal').classList.add('active');
             document.getElementById('newFileName').focus();
+            
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
         }
 
         function showCompressionModal() {
             const modal = document.getElementById('compressionModal');
-            const select = document.getElementById('compressFileSelect');
-            
-            // Populate file options
-            select.innerHTML = '';
-            fileManager.files.forEach((file, id) => {
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = file.name;
-                select.appendChild(option);
-            });
-            
             modal.classList.add('active');
+            
+            // Reset form
+            document.getElementById('archiveName').value = '';
+            compressionSource = '';
+            selectedEditorFiles.clear();
+            selectedUploadFiles.clear();
+            document.querySelectorAll('.compression-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('editorFilesSection').classList.add('hidden');
+            document.getElementById('uploadFilesSection').classList.add('hidden');
+            updateSelectedUploadFiles();
+            
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
         }
 
         function closeModal(modalId) {
@@ -1394,85 +1923,112 @@
             document.getElementById('newFileContent').value = '';
         }
 
-        function compressFile(event) {
+        async function compressFiles(event) {
             event.preventDefault();
             
-            const fileId = document.getElementById('compressFileSelect').value;
-            const file = fileManager.getFile(fileId);
+            let filesToCompress = [];
+            
+            if (compressionSource === 'editor') {
+                if (selectedEditorFiles.size === 0) {
+                    showToast('Please select files from the editor', 'error');
+                    return;
+                }
+                
+                selectedEditorFiles.forEach(fileId => {
+                    const file = fileManager.getFile(fileId);
+                    if (file) {
+                        filesToCompress.push({
+                            name: file.name,
+                            content: file.content,
+                            type: file.type,
+                            size: file.size,
+                            source: 'editor'
+                        });
+                    }
+                });
+            } else if (compressionSource === 'upload') {
+                if (selectedUploadFiles.size === 0) {
+                    showToast('Please upload files to compress', 'error');
+                    return;
+                }
+                
+                filesToCompress = Array.from(selectedUploadFiles);
+            } else {
+                showToast('Please select a file source', 'error');
+                return;
+            }
+            
+            const archiveName = document.getElementById('archiveName').value;
             const level = parseInt(document.getElementById('compressionLevel').value);
             const format = document.getElementById('compressionFormat').value;
-            
-            if (!file) return;
             
             // Show progress
             document.getElementById('compressionProgress').classList.remove('hidden');
             document.getElementById('compressionResults').classList.add('hidden');
-            const progressBar = document.querySelector('#compressionProgress .bg-blue-600');
+            const progressBar = document.querySelector('#compressionProgress .progress-fill');
             
-            // Simulate progress
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += 10;
-                progressBar.style.width = progress + '%';
-                if (progress >= 90) clearInterval(progressInterval);
-            }, 50);
+            // Create ZIP archive
+            const zip = new JSZip();
             
-            // Compress file
-            setTimeout(() => {
-                try {
-                    const data = new TextEncoder().encode(file.content);
-                    let compressed;
-                    
-                    switch (format) {
-                        case 'gzip':
-                            compressed = pako.gzip(data, { level });
-                            break;
-                        case 'deflate':
-                            compressed = pako.deflate(data, { level });
-                            break;
-                        default:
-                            compressed = pako.deflate(data, { level });
-                    }
-                    
-                    const compressedFile = {
-                        name: file.name + '.' + format,
-                        originalSize: data.length,
-                        compressedSize: compressed.length,
-                        ratio: ((1 - compressed.length / data.length) * 100).toFixed(2),
-                        data: compressed,
-                        format,
-                        created: new Date().toISOString()
-                    };
-                    
-                    fileManager.addCompressedFile(compressedFile);
-                    
-                    // Show results
-                    document.getElementById('originalSize').textContent = fileManager.formatFileSize(compressedFile.originalSize);
-                    document.getElementById('compressedSize').textContent = fileManager.formatFileSize(compressedFile.compressedSize);
-                    document.getElementById('compressionRatio').textContent = compressedFile.ratio + '%';
-                    
-                    progressBar.style.width = '100%';
-                    
-                    setTimeout(() => {
-                        document.getElementById('compressionProgress').classList.add('hidden');
-                        document.getElementById('compressionResults').classList.remove('hidden');
-                        closeModal('compressionModal');
-                        showToast('File compressed successfully', 'success');
-                    }, 500);
-                    
-                } catch (error) {
-                    console.error('Compression error:', error);
-                    showToast('Compression failed', 'error');
-                    document.getElementById('compressionProgress').classList.add('hidden');
+            // Add files to ZIP with folder structure based on source
+            filesToCompress.forEach(file => {
+                if (file.source === 'editor') {
+                    zip.file(`editor/${file.name}`, file.content);
+                } else {
+                    zip.file(`uploaded/${file.name}`, file.content);
                 }
-            }, 500);
+            });
+            
+            // Generate ZIP
+            try {
+                const content = await zip.generateAsync({
+                    type: 'uint8array',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: level }
+                }, (metadata) => {
+                    const progress = Math.round(metadata.percent);
+                    progressBar.style.width = progress + '%';
+                });
+                
+                const compressedFile = {
+                    name: archiveName + '.' + format,
+                    originalSize: filesToCompress.reduce((sum, file) => sum + file.size, 0),
+                    compressedSize: content.length,
+                    ratio: ((1 - content.length / filesToCompress.reduce((sum, file) => sum + file.size, 0)) * 100).toFixed(2),
+                    data: content,
+                    format,
+                    created: new Date().toISOString(),
+                    files: filesToCompress
+                };
+                
+                fileManager.addCompressedFile(compressedFile);
+                
+                // Show results
+                document.getElementById('originalSize').textContent = fileManager.formatFileSize(compressedFile.originalSize);
+                document.getElementById('compressedSize').textContent = fileManager.formatFileSize(compressedFile.compressedSize);
+                document.getElementById('compressionRatio').textContent = compressedFile.ratio + '%';
+                
+                progressBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    document.getElementById('compressionProgress').classList.add('hidden');
+                    document.getElementById('compressionResults').classList.remove('hidden');
+                    closeModal('compressionModal');
+                    showToast('Files compressed successfully', 'success');
+                }, 500);
+                
+            } catch (error) {
+                console.error('Compression error:', error);
+                showToast('Compression failed', 'error');
+                document.getElementById('compressionProgress').classList.add('hidden');
+            }
         }
 
         function downloadCompressedFile(index) {
             const file = fileManager.compressedFiles[index];
             if (!file) return;
             
-            const blob = new Blob([file.data], { type: 'application/octet-stream' });
+            const blob = new Blob([file.data], { type: 'application/zip' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1502,7 +2058,7 @@
             a.click();
             URL.revokeObjectURL(url);
             
-            document.getElementById('saveStatus').innerHTML = '<i class="fas fa-check-circle"></i> Saved';
+            document.getElementById('saveStatus').textContent = 'Saved';
             document.getElementById('saveStatus').className = 'text-green-400';
             showToast('File saved successfully', 'success');
         }
@@ -1635,6 +2191,45 @@
             }, 3000);
         }
 
+        // Mobile sidebar handling
+        function openMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.add('open');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.remove('open');
+        }
+
+        // Touch handling for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - close sidebar
+                    closeMobileSidebar();
+                } else {
+                    // Swipe right - open sidebar
+                    openMobileSidebar();
+                }
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Load dark mode preference
@@ -1649,59 +2244,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to CodeForge Studio</title>
+    <title>CodeForge Studio</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
+        
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
             backdrop-filter: blur(10px);
         }
+        
         h1 {
             text-align: center;
+            color: #4a5568;
             margin-bottom: 30px;
+            font-size: 2.5em;
         }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
         .feature {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature i {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .cta {
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        
+        .cta:hover {
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Welcome to CodeForge Studio</h1>
-        <p>Your professional code editor with advanced features.</p>
+        <h1>⚡ CodeForge Studio</h1>
+        <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">
+            Professional code editor with advanced features
+        </p>
         
-        <div class="feature">
-            <h3>📁 File Management</h3>
-            <p>Create, open, and manage multiple files with ease.</p>
+        <div class="features">
+            <div class="feature">
+                <i class="fas fa-file-code"></i>
+                <h3>Multi-language Support</h3>
+                <p>Support for 20+ programming languages</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-archive"></i>
+                <h3>File Compression</h3>
+                <p>Compress multiple files into archives</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>Mobile Optimized</h3>
+                <p>Works perfectly on all devices</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-bolt"></i>
+                <h3>Lightning Fast</h3>
+                <p>Optimized for performance</p>
+            </div>
         </div>
         
-        <div class="feature">
-            <h3>🗜️ File Compression</h3>
-            <p>Compress your files to save space.</p>
-        </div>
-        
-        <div class="feature">
-            <h3>🎨 Syntax Highlighting</h3>
-            <p>Support for 20+ programming languages.</p>
-        </div>
-        
-        <div class="feature">
-            <h3>⚡ Performance</h3>
-            <p>Optimized for large files and smooth editing.</p>
-        </div>
+        <a href="#" class="cta">Start Coding</a>
     </div>
 </body>
 </html>`, 'html');
@@ -1747,9 +2415,35 @@
         });
 
         // Handle window resize
+        let resizeTimeout;
         window.addEventListener('resize', () => {
-            editor.refresh();
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                editor.refresh();
+                
+                // Close sidebar on mobile when resizing to desktop
+                if (window.innerWidth > 768) {
+                    document.getElementById('sidebar').classList.remove('open');
+                }
+            }, 250);
         });
+
+        // Handle orientation change for mobile
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                editor.refresh();
+            }, 100);
+        });
+
+        // Prevent zoom on double tap for mobile
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
     </script>
 </body>
 </html>
