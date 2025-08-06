@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeForge Studio - Advanced Code Editor</title>
-    <meta name="description" content="Professional online code editor with syntax highlighting, live preview, and collaboration features">
+    <meta name="description" content="Professional online code editor with large file support, file management, and compression">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,7 +27,8 @@
             --warning-color: #f59e0b;
             --error-color: #ef4444;
             --dark-bg: #1f2937;
-            --light-bg: #f3f4f6;
+            --light-bg: #f8fafc;
+            --sidebar-width: 280px;
         }
 
         * {
@@ -40,6 +41,7 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--light-bg);
             transition: all 0.3s ease;
+            overflow-x: hidden;
         }
 
         body.dark-mode {
@@ -47,594 +49,931 @@
             color: #e5e7eb;
         }
 
+        /* Main Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        body.dark-mode .sidebar {
+            background: #1f2937;
+            border-right-color: #374151;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        body.dark-mode .sidebar-header {
+            border-bottom-color: #374151;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .sidebar-section {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            padding: 0 0.5rem;
+        }
+
+        body.dark-mode .sidebar-section-title {
+            color: #9ca3af;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Editor Area */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            overflow-x: auto;
+        }
+
+        body.dark-mode .editor-tabs {
+            background: #111827;
+            border-bottom-color: #374151;
+        }
+
+        .editor-tab {
+            padding: 0.75rem 1rem;
+            border-right: 1px solid #e5e7eb;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .editor-tab {
+            border-right-color: #374151;
+        }
+
+        .editor-tab:hover {
+            background: #f3f4f6;
+        }
+
+        body.dark-mode .editor-tab:hover {
+            background: #1f2937;
+        }
+
+        .editor-tab.active {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        body.dark-mode .editor-tab.active {
+            background: #1f2937;
+        }
+
+        .editor-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* CodeMirror */
         .CodeMirror {
             height: 100%;
             font-size: 14px;
             font-family: 'Fira Code', 'Consolas', monospace;
         }
 
-        .preview-frame {
-            background: white;
-            border: none;
-            width: 100%;
-            height: 100%;
+        /* File Tree */
+        .file-tree {
+            margin-top: 0.5rem;
         }
 
-        .dark-mode .preview-frame {
-            background: #1a1a1a;
-        }
-
-        .toolbar-btn {
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .toolbar-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .toolbar-btn:active {
-            transform: translateY(0);
-        }
-
-        .tab-active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .resize-handle {
-            cursor: col-resize;
-            background: #e5e7eb;
-            width: 4px;
-            transition: background 0.2s;
-        }
-
-        .resize-handle:hover {
-            background: #9ca3af;
-        }
-
-        .dark-mode .resize-handle {
-            background: #4b5563;
-        }
-
-        .dark-mode .resize-handle:hover {
-            background: #6b7280;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
-        }
-
-        .slide-in {
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .autocomplete-item {
-            padding: 8px 12px;
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            position: relative;
         }
 
-        .autocomplete-item:hover {
+        .file-item:hover {
             background: #f3f4f6;
         }
 
-        .dark-mode .autocomplete-item:hover {
+        body.dark-mode .file-item:hover {
             background: #374151;
         }
 
-        .file-tree-item {
-            padding: 4px 8px;
-            cursor: pointer;
+        .file-item.active {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        body.dark-mode .file-item.active {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        .file-icon {
+            width: 1.25rem;
+            margin-right: 0.5rem;
+            text-align: center;
+        }
+
+        .file-name {
+            flex: 1;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .file-item:hover .file-actions {
+            opacity: 1;
+        }
+
+        .file-action-btn {
+            padding: 0.25rem;
+            border-radius: 0.25rem;
             transition: all 0.2s;
-            border-radius: 4px;
         }
 
-        .file-tree-item:hover {
-            background: #e5e7eb;
+        .file-action-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
         }
 
-        .dark-mode .file-tree-item:hover {
+        /* Compression Section */
+        .compression-section {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        body.dark-mode .compression-section {
+            background: #1f2937;
+        }
+
+        .compression-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        body.dark-mode .compression-item {
+            background: #111827;
+            border-color: #374151;
+        }
+
+        .compression-info {
+            flex: 1;
+        }
+
+        .compression-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .compression-size {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        body.dark-mode .compression-size {
+            color: #9ca3af;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        body.dark-mode .toolbar {
+            background: #1f2937;
+            border-bottom-color: #374151;
+        }
+
+        .toolbar-btn {
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            border: none;
+            background: transparent;
+        }
+
+        .toolbar-btn:hover {
+            background: #f3f4f6;
+        }
+
+        body.dark-mode .toolbar-btn:hover {
             background: #374151;
         }
 
-        .file-tree-item.active {
+        .toolbar-btn.primary {
             background: var(--primary-color);
             color: white;
         }
 
-        .git-status {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-left: 4px;
+        .toolbar-btn.primary:hover {
+            background: #2563eb;
         }
 
-        .git-status.modified {
-            background: var(--warning-color);
+        .toolbar-separator {
+            width: 1px;
+            height: 1.5rem;
+            background: #e5e7eb;
         }
 
-        .git-status.added {
-            background: var(--success-color);
+        body.dark-mode .toolbar-separator {
+            background: #374151;
         }
 
-        .git-status.deleted {
-            background: var(--error-color);
+        /* Status Bar */
+        .status-bar {
+            background: #1f2937;
+            color: white;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
         }
 
-        .ad-container {
-            min-height: 250px;
-            background: #f3f4f6;
-            border: 2px dashed #d1d5db;
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #6b7280;
-            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
         }
 
-        .dark-mode .ad-container {
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        body.dark-mode .modal-content {
+            background: #1f2937;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f3f4f6;
+        }
+
+        body.dark-mode .modal-close:hover {
             background: #374151;
-            border-color: #4b5563;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        body.dark-mode .form-input,
+        body.dark-mode .form-select,
+        body.dark-mode .form-textarea {
+            background: #111827;
+            border-color: #374151;
+            color: white;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: #1f2937;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+
+        .toast.success .toast-icon {
+            color: #10b981;
+        }
+
+        .toast.error .toast-icon {
+            color: #ef4444;
+        }
+
+        .toast.info .toast-icon {
+            color: #3b82f6;
+        }
+
+        /* Ad Container */
+        .ad-container {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        body.dark-mode .ad-container {
+            background: #1f2937;
+            border-color: #374151;
             color: #9ca3af;
         }
 
-        .terminal {
-            background: #1e1e1e;
-            color: #00ff00;
-            font-family: 'Consolas', monospace;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .terminal-line {
-            margin: 2px 0;
-        }
-
-        .terminal-input {
-            background: transparent;
-            border: none;
-            color: #00ff00;
-            font-family: inherit;
-            font-size: inherit;
-            outline: none;
-            width: 100%;
-        }
-
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary-color);
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f4f6;
+            border-top-color: var(--primary-color);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .tooltip {
-            position: relative;
-        }
-
-        .tooltip::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .tooltip:hover::after {
-            opacity: 1;
-        }
-
-        .collaboration-cursor {
-            position: absolute;
-            width: 2px;
-            height: 20px;
-            transition: all 0.1s;
-        }
-
-        .collaboration-label {
-            position: absolute;
-            top: -20px;
-            left: 0;
-            background: #1f2937;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 2px;
-            font-size: 11px;
-            white-space: nowrap;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .mobile-menu {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 6px -1px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
                 display: block;
             }
-            
-            .desktop-menu {
-                display: none;
-            }
         }
+
+        /* Utility Classes */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+
+        .p-1 { padding: 0.25rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-4 { padding: 1rem; }
+
+        .m-1 { margin: 0.25rem; }
+        .m-2 { margin: 0.5rem; }
+        .m-4 { margin: 1rem; }
+
+        .mt-2 { margin-top: 0.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .ml-2 { margin-left: 0.5rem; }
+        .mr-2 { margin-right: 0.5rem; }
+
+        .rounded { border-radius: 0.25rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+
+        .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
     </style>
 </head>
 <body>
-    <!-- Google AdSense Placeholder -->
-    <div class="ad-container w-full py-2 text-center">
-        <i class="fas fa-ad mr-2"></i>
-        Google AdSense Banner (728x90)
-    </div>
-
-    <!-- Header -->
-    <header class="bg-white shadow-md dark-mode:bg-gray-800">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-code text-blue-600 text-2xl"></i>
-                        <h1 class="text-2xl font-bold text-gray-800 dark-mode:text-white">CodeForge Studio</h1>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-code text-blue-600 text-xl"></i>
+                    <span class="font-semibold text-lg">CodeForge</span>
+                </div>
+                <button class="sidebar-toggle p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Files Section -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Files</h3>
+                    <div class="flex gap-2 mb-2">
+                        <button class="btn btn-primary flex-1 text-xs" onclick="showNewFileModal()">
+                            <i class="fas fa-plus"></i>
+                            New File
+                        </button>
+                        <button class="btn btn-secondary text-xs p-2" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
                     </div>
-                    <div class="hidden md:flex items-center space-x-2">
-                        <span class="text-sm text-gray-500 dark-mode:text-gray-400">v1.0.0</span>
-                        <span class="text-sm text-green-500">
-                            <i class="fas fa-circle text-xs"></i> Live
-                        </span>
+                    <input type="file" id="fileInput" class="hidden" multiple accept=".html,.css,.js,.json,.txt,.md,.py,.java,.cpp,.c,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.vue,.scss,.sass,.less">
+                    <div class="file-tree" id="fileTree">
+                        <!-- Files will be populated here -->
                     </div>
                 </div>
-                
-                <div class="flex items-center space-x-4">
-                    <!-- Language Switcher -->
-                    <select id="languageSwitcher" class="bg-gray-100 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded-lg text-sm">
-                        <option value="en">English</option>
-                        <option value="ar">العربية</option>
-                    </select>
-                    
-                    <!-- Dark Mode Toggle -->
-                    <button id="darkModeToggle" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 p-2 rounded-lg">
-                        <i class="fas fa-moon dark-mode:hidden"></i>
-                        <i class="fas fa-sun hidden dark-mode:inline"></i>
-                    </button>
-                    
-                    <!-- User Menu -->
-                    <div class="relative">
-                        <button id="userMenuBtn" class="toolbar-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-                            <i class="fas fa-user"></i>
-                            <span class="hidden md:inline">Guest</span>
+
+                <!-- Compression Section -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Compression</h3>
+                    <div class="compression-section">
+                        <button class="btn btn-primary w-full text-xs mb-2" onclick="showCompressionModal()">
+                            <i class="fas fa-file-archive"></i>
+                            Compress File
                         </button>
-                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark-mode:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
-                            <a href="#" class="block px-4 py-2 text-gray-700 dark-mode:text-gray-300 hover:bg-gray-100 dark-mode:hover:bg-gray-700">
-                                <i class="fas fa-user-circle ml-2"></i> Profile
-                            </a>
-                            <a href="#" class="block px-4 py-2 text-gray-700 dark-mode:text-gray-300 hover:bg-gray-100 dark-mode:hover:bg-gray-700">
-                                <i class="fas fa-cog ml-2"></i> Settings
-                            </a>
-                            <hr class="my-2 dark-mode:border-gray-700">
-                            <a href="#" class="block px-4 py-2 text-gray-700 dark-mode:text-gray-300 hover:bg-gray-100 dark-mode:hover:bg-gray-700">
-                                <i class="fas fa-sign-out-alt ml-2"></i> Sign Out
-                            </a>
+                        <div id="compressedFiles">
+                            <!-- Compressed files will be listed here -->
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
-        <!-- File Management Bar -->
-        <div class="bg-white dark-mode:bg-gray-800 rounded-lg shadow-md p-4 mb-4">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center space-x-4 space-x-reverse">
-                    <button id="newFileBtn" class="toolbar-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 space-x-reverse" data-tooltip="New File">
-                        <i class="fas fa-file-plus"></i>
-                        <span class="hidden sm:inline">New</span>
-                    </button>
-                    <button id="openFileBtn" class="toolbar-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 space-x-reverse" data-tooltip="Open File">
-                        <i class="fas fa-folder-open"></i>
-                        <span class="hidden sm:inline">Open</span>
-                    </button>
-                    <input type="file" id="fileInput" class="hidden" accept=".html,.css,.js,.json,.txt">
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <input type="text" id="fileName" placeholder="untitled.html" class="bg-gray-100 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded-lg text-sm w-32 md:w-48">
-                        <button id="saveFileBtn" class="toolbar-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg" data-tooltip="Save File">
-                            <i class="fas fa-save"></i>
+                <!-- Tools Section -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Tools</h3>
+                    <div class="space-y-1">
+                        <button class="toolbar-btn w-full justify-start" onclick="formatCode()">
+                            <i class="fas fa-magic"></i>
+                            Format Code
+                        </button>
+                        <button class="toolbar-btn w-full justify-start" onclick="minifyCode()">
+                            <i class="fas fa-compress-alt"></i>
+                            Minify Code
+                        </button>
+                        <button class="toolbar-btn w-full justify-start" onclick="beautifyCode()">
+                            <i class="fas fa-expand-alt"></i>
+                            Beautify Code
                         </button>
                     </div>
                 </div>
-                
-                <div class="flex items-center space-x-2 space-x-reverse">
-                    <span class="text-sm text-gray-500 dark-mode:text-gray-400">
-                        <i class="fas fa-code-branch ml-1"></i>
-                        <span id="gitBranch">main</span>
-                    </span>
-                    <button id="gitSyncBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded-lg" data-tooltip="Git Sync">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
+
+                <!-- Settings Section -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Settings</h3>
+                    <div class="space-y-1">
+                        <button class="toolbar-btn w-full justify-start" onclick="toggleDarkMode()">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:inline"></i>
+                            <span class="dark:hidden">Dark Mode</span>
+                            <span class="hidden dark:inline">Light Mode</span>
+                        </button>
+                        <select class="form-select text-xs" onchange="changeTheme(this.value)">
+                            <option value="monokai">Monokai</option>
+                            <option value="dracula">Dracula</option>
+                            <option value="material">Material</option>
+                            <option value="default">Default</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- Advanced Toolbar -->
-        <div class="bg-white dark-mode:bg-gray-800 rounded-lg shadow-md p-4 mb-4">
-            <div class="flex flex-wrap items-center gap-2">
-                <!-- Edit Actions -->
-                <div class="flex items-center space-x-1 space-x-reverse">
-                    <button id="undoBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Undo">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="flex items-center gap-2">
+                    <button class="toolbar-btn" onclick="editor.undo()" title="Undo">
                         <i class="fas fa-undo"></i>
                     </button>
-                    <button id="redoBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Redo">
+                    <button class="toolbar-btn" onclick="editor.redo()" title="Redo">
                         <i class="fas fa-redo"></i>
                     </button>
-                    <div class="w-px h-8 bg-gray-300 dark-mode:bg-gray-600"></div>
-                </div>
-
-                <!-- Code Actions -->
-                <div class="flex items-center space-x-1 space-x-reverse">
-                    <button id="formatBtn" class="toolbar-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded" data-tooltip="Format Code">
-                        <i class="fas fa-magic"></i>
-                    </button>
-                    <button id="minifyBtn" class="toolbar-btn bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded" data-tooltip="Minify Code">
-                        <i class="fas fa-compress-alt"></i>
-                    </button>
-                    <button id="beautifyBtn" class="toolbar-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded" data-tooltip="Beautify Code">
-                        <i class="fas fa-expand-alt"></i>
-                    </button>
-                    <div class="w-px h-8 bg-gray-300 dark-mode:bg-gray-600"></div>
-                </div>
-
-                <!-- Search Actions -->
-                <div class="flex items-center space-x-1 space-x-reverse">
-                    <button id="searchBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Search">
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" onclick="editor.execCommand('find')" title="Search">
                         <i class="fas fa-search"></i>
                     </button>
-                    <button id="replaceBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Replace">
+                    <button class="toolbar-btn" onclick="editor.execCommand('replace')" title="Replace">
                         <i class="fas fa-exchange-alt"></i>
                     </button>
-                    <div class="w-px h-8 bg-gray-300 dark-mode:bg-gray-600"></div>
-                </div>
-
-                <!-- Tools -->
-                <div class="flex items-center space-x-1 space-x-reverse">
-                    <button id="clearBtn" class="toolbar-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded" data-tooltip="Clear All">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button id="copyBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Copy">
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" onclick="copyCode()" title="Copy">
                         <i class="fas fa-copy"></i>
                     </button>
-                    <button id="pasteBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Paste">
+                    <button class="toolbar-btn" onclick="pasteCode()" title="Paste">
                         <i class="fas fa-paste"></i>
                     </button>
-                    <div class="w-px h-8 bg-gray-300 dark-mode:bg-gray-600"></div>
                 </div>
+                
+                <div class="flex items-center gap-2 ml-auto">
+                    <button class="toolbar-btn primary" onclick="saveFile()">
+                        <i class="fas fa-save"></i>
+                        Save
+                    </button>
+                    <button class="toolbar-btn" onclick="togglePreview()">
+                        <i class="fas fa-eye"></i>
+                        Preview
+                    </button>
+                </div>
+            </div>
 
-                <!-- Settings -->
-                <div class="flex items-center space-x-1 space-x-reverse">
-                    <select id="themeSelect" class="bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded text-sm">
-                        <option value="monokai">Monokai</option>
-                        <option value="dracula">Dracula</option>
-                        <option value="material">Material</option>
-                        <option value="default">Default</option>
+            <!-- Editor Container -->
+            <div class="editor-container">
+                <div class="editor-panel">
+                    <div class="editor-tabs" id="editorTabs">
+                        <!-- Tabs will be populated here -->
+                    </div>
+                    <div class="editor-content">
+                        <textarea id="codeEditor"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Preview Panel (Hidden by default) -->
+                <div class="editor-panel hidden" id="previewPanel">
+                    <div class="editor-tabs">
+                        <div class="editor-tab active">
+                            <i class="fas fa-eye"></i>
+                            Preview
+                        </div>
+                    </div>
+                    <div class="editor-content">
+                        <iframe id="previewFrame" class="w-full h-full"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <span id="cursorPosition">Ln 1, Col 1</span>
+                </div>
+                <div class="status-item">
+                    <span id="fileSize">0 bytes</span>
+                </div>
+                <div class="status-item">
+                    <span id="languageMode">Plain Text</span>
+                </div>
+                <div class="status-item">
+                    <span id="saveStatus" class="text-green-400">
+                        <i class="fas fa-check-circle"></i> Saved
+                    </span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New File Modal -->
+    <div class="modal" id="newFileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">New File</h2>
+                <button class="modal-close" onclick="closeModal('newFileModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="createNewFile(event)">
+                <div class="form-group">
+                    <label class="form-label">File Name</label>
+                    <input type="text" class="form-input" id="newFileName" placeholder="Enter file name..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">File Type</label>
+                    <select class="form-select" id="newFileType">
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="js">JavaScript</option>
+                        <option value="json">JSON</option>
+                        <option value="txt">Text</option>
+                        <option value="md">Markdown</option>
+                        <option value="py">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                        <option value="c">C</option>
+                        <option value="php">PHP</option>
+                        <option value="rb">Ruby</option>
+                        <option value="go">Go</option>
+                        <option value="rs">Rust</option>
+                        <option value="ts">TypeScript</option>
+                        <option value="jsx">React JSX</option>
+                        <option value="tsx">React TSX</option>
+                        <option value="vue">Vue</option>
+                        <option value="scss">SCSS</option>
+                        <option value="sass">SASS</option>
+                        <option value="less">LESS</option>
                     </select>
-                    <button id="fontSizeBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Font Size">
-                        <i class="fas fa-text-height"></i>
-                    </button>
-                    <button id="settingsBtn" class="toolbar-btn bg-gray-200 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded" data-tooltip="Settings">
-                        <i class="fas fa-cog"></i>
-                    </button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Editor Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <!-- File Explorer -->
-            <div class="lg:col-span-1 bg-white dark-mode:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <div class="p-4 border-b dark-mode:border-gray-700">
-                    <h3 class="font-semibold text-gray-800 dark-mode:text-white flex items-center justify-between">
-                        <span><i class="fas fa-folder-tree ml-2"></i> File Explorer</span>
-                        <button id="newFolderBtn" class="text-gray-500 hover:text-gray-700 dark-mode:text-gray-400 dark-mode:hover:text-gray-200">
-                            <i class="fas fa-folder-plus"></i>
-                        </button>
-                    </h3>
+                <div class="form-group">
+                    <label class="form-label">Initial Content (Optional)</label>
+                    <textarea class="form-textarea" id="newFileContent" placeholder="Enter initial content..."></textarea>
                 </div>
-                <div id="fileExplorer" class="p-4 space-y-1 max-h-96 overflow-y-auto">
-                    <div class="file-tree-item active" data-file="index.html">
-                        <i class="fas fa-file-code ml-2"></i> index.html
-                    </div>
-                    <div class="file-tree-item" data-file="style.css">
-                        <i class="fas fa-file-code ml-2"></i> style.css
-                    </div>
-                    <div class="file-tree-item" data-file="script.js">
-                        <i class="fas fa-file-code ml-2"></i> script.js
-                    </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('newFileModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create File</button>
                 </div>
-            </div>
-
-            <!-- Editor Area -->
-            <div class="lg:col-span-3 bg-white dark-mode:bg-gray-800 rounded-lg shadow-md overflow-hidden" style="height: calc(100vh - 400px);">
-                <!-- Tabs -->
-                <div class="flex border-b dark-mode:border-gray-700">
-                    <button class="tab-btn tab-active px-6 py-3 font-medium transition-colors" data-tab="editor">
-                        <i class="fas fa-code ml-2"></i>
-                        <span data-en="Editor" data-ar="المحرر">Editor</span>
-                    </button>
-                    <button class="tab-btn px-6 py-3 font-medium text-gray-600 dark-mode:text-gray-400 hover:text-gray-800 dark-mode:hover:text-gray-200 transition-colors" data-tab="preview">
-                        <i class="fas fa-eye ml-2"></i>
-                        <span data-en="Preview" data-ar="معاينة">Preview</span>
-                    </button>
-                    <button class="tab-btn px-6 py-3 font-medium text-gray-600 dark-mode:text-gray-400 hover:text-gray-800 dark-mode:hover:text-gray-200 transition-colors" data-tab="split">
-                        <i class="fas fa-columns ml-2"></i>
-                        <span data-en="Split" data-ar="تقسيم">Split</span>
-                    </button>
-                    <button class="tab-btn px-6 py-3 font-medium text-gray-600 dark-mode:text-gray-400 hover:text-gray-800 dark-mode:hover:text-gray-200 transition-colors" data-tab="console">
-                        <i class="fas fa-terminal ml-2"></i>
-                        <span data-en="Console" data-ar="كونسول">Console</span>
-                    </button>
-                </div>
-
-                <!-- Content Areas -->
-                <div class="relative" style="height: calc(100% - 50px);">
-                    <!-- Editor Tab -->
-                    <div id="editor-tab" class="tab-content absolute inset-0">
-                        <textarea id="code-editor"></textarea>
-                    </div>
-
-                    <!-- Preview Tab -->
-                    <div id="preview-tab" class="tab-content absolute inset-0 hidden">
-                        <div class="flex items-center justify-between p-2 bg-gray-50 dark-mode:bg-gray-900 border-b dark-mode:border-gray-700">
-                            <span class="text-sm text-gray-600 dark-mode:text-gray-400">Preview</span>
-                            <button id="refreshPreviewBtn" class="text-gray-500 hover:text-gray-700 dark-mode:text-gray-400 dark-mode:hover:text-gray-200">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                        <iframe id="preview-iframe" class="preview-frame"></iframe>
-                    </div>
-
-                    <!-- Split View -->
-                    <div id="split-tab" class="tab-content absolute inset-0 hidden flex">
-                        <div class="flex-1 relative">
-                            <div id="split-editor"></div>
-                        </div>
-                        <div class="resize-handle" id="resize-handle"></div>
-                        <div class="flex-1 relative">
-                            <iframe id="split-preview" class="preview-frame"></iframe>
-                        </div>
-                    </div>
-
-                    <!-- Console Tab -->
-                    <div id="console-tab" class="tab-content absolute inset-0 hidden p-4">
-                        <div class="terminal h-full">
-                            <div class="terminal-line">$ CodeForge Studio Console v1.0.0</div>
-                            <div class="terminal-line">$ Type 'help' for available commands</div>
-                            <div class="terminal-line flex items-center">
-                                <span>$ </span>
-                                <input type="text" class="terminal-input" placeholder="Enter command...">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Status Bar -->
-        <div class="bg-gray-800 dark-mode:bg-gray-900 text-white px-4 py-2 rounded-lg mt-4 flex flex-wrap justify-between items-center text-sm">
-            <div class="flex items-center space-x-4 space-x-reverse">
-                <span><span data-en="Line" data-ar="السطر">Line</span>: <span id="line-number">1</span></span>
-                <span><span data-en="Column" data-ar="العمود">Column</span>: <span id="column-number">1</span></span>
-                <span><span data-en="Size" data-ar="الحجم">Size</span>: <span id="file-size">0</span> bytes</span>
-                <span><span data-en="Language" data-ar="اللغة">Language</span>: <span id="language-mode">HTML</span></span>
-            </div>
-            <div class="flex items-center space-x-4 space-x-reverse">
-                <span id="save-status" class="text-green-400">
-                    <i class="fas fa-check-circle ml-1"></i>
-                    <span data-en="Saved" data-ar="محفوظ">Saved</span>
-                </span>
-                <span id="connection-status" class="text-blue-400">
-                    <i class="fas fa-wifi ml-1"></i>
-                    <span data-en="Connected" data-ar="متصل">Connected</span>
-                </span>
-            </div>
-        </div>
-
-        <!-- Google AdSense Sidebar -->
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="ad-container rounded-lg">
-                <i class="fas fa-ad mr-2"></i>
-                Google AdSense (300x250)
-            </div>
-            <div class="ad-container rounded-lg">
-                <i class="fas fa-ad mr-2"></i>
-                Google AdSense (300x250)
-            </div>
-            <div class="ad-container rounded-lg">
-                <i class="fas fa-ad mr-2"></i>
-                Google AdSense (300x250)
-            </div>
-        </div>
-    </main>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-4 left-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 transition-transform duration-300 z-50">
-        <div class="flex items-center">
-            <i id="toast-icon" class="fas fa-check-circle ml-2"></i>
-            <span id="toast-message">Operation completed successfully</span>
+            </form>
         </div>
     </div>
 
-    <!-- Modal for Settings -->
-    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white dark-mode:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800 dark-mode:text-white">
-                <span data-en="Settings" data-ar="الإعدادات">Settings</span>
-            </h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-2">
-                        <span data-en="Auto Save" data-ar="الحفظ التلقائي">Auto Save</span>
-                    </label>
-                    <select id="autoSaveSelect" class="w-full bg-gray-100 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded-lg">
-                        <option value="off">Off</option>
-                        <option value="1">1 minute</option>
-                        <option value="5">5 minutes</option>
-                        <option value="10">10 minutes</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-2">
-                        <span data-en="Tab Size" data-ar="حجم التبويب">Tab Size</span>
-                    </label>
-                    <select id="tabSizeSelect" class="w-full bg-gray-100 dark-mode:bg-gray-700 text-gray-700 dark-mode:text-gray-300 px-3 py-2 rounded-lg">
-                        <option value="2">2 spaces</option>
-                        <option value="4">4 spaces</option>
-                        <option value="8">8 spaces</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="flex items-center">
-                        <input type="checkbox" id="wordWrapToggle" class="mr-2">
-                        <span class="text-sm text-gray-700 dark-mode:text-gray-300">
-                            <span data-en="Word Wrap" data-ar="التفاف النص">Word Wrap</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end space-x-2 space-x-reverse">
-                <button id="cancelSettingsBtn" class="px-4 py-2 bg-gray-300 dark-mode:bg-gray-600 text-gray-700 dark-mode:text-gray-300 rounded-lg">
-                    <span data-en="Cancel" data-ar="إلغاء">Cancel</span>
-                </button>
-                <button id="saveSettingsBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">
-                    <span data-en="Save" data-ar="حفظ">Save</span>
+    <!-- Compression Modal -->
+    <div class="modal" id="compressionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Compress File</h2>
+                <button class="modal-close" onclick="closeModal('compressionModal')">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
+            <form onsubmit="compressFile(event)">
+                <div class="form-group">
+                    <label class="form-label">Select File</label>
+                    <select class="form-select" id="compressFileSelect" required>
+                        <!-- Files will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Compression Level</label>
+                    <select class="form-select" id="compressionLevel">
+                        <option value="1">Fast (Less compression)</option>
+                        <option value="6" selected>Normal</option>
+                        <option value="9">Maximum (More compression)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Output Format</label>
+                    <select class="form-select" id="compressionFormat">
+                        <option value="zip">ZIP</option>
+                        <option value="gzip">GZIP</option>
+                        <option value="deflate">DEFLATE</option>
+                    </select>
+                </div>
+                <div id="compressionProgress" class="hidden">
+                    <div class="bg-gray-200 rounded-full h-2 mb-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p class="text-sm text-gray-600 text-center">Compressing...</p>
+                </div>
+                <div id="compressionResults" class="hidden">
+                    <div class="bg-gray-50 rounded p-3 space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <span>Original Size:</span>
+                            <span id="originalSize">0 bytes</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Compressed Size:</span>
+                            <span id="compressedSize">0 bytes</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Compression Ratio:</span>
+                            <span id="compressionRatio">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('compressionModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Compress</button>
+                </div>
+            </form>
         </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle toast-icon"></i>
+        <span class="toast-message">Operation completed successfully</span>
+    </div>
+
+    <!-- Ad Container (Bottom Right Corner) -->
+    <div class="ad-container fixed bottom-4 right-4 w-64 h-32 shadow-lg z-50">
+        <i class="fas fa-ad mr-2"></i>
+        Advertisement
     </div>
 
     <!-- Scripts -->
@@ -646,81 +985,319 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closetag.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/html-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/css-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/javascript-hint.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/search.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/searchcursor.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 
     <script>
-        // Language translations
-        const translations = {
-            en: {
-                'Editor': 'Editor',
-                'Preview': 'Preview',
-                'Split': 'Split',
-                'Console': 'Console',
-                'Line': 'Line',
-                'Column': 'Column',
-                'Size': 'Size',
-                'Language': 'Language',
-                'Saved': 'Saved',
-                'Connected': 'Connected',
-                'Settings': 'Settings',
-                'Auto Save': 'Auto Save',
-                'Tab Size': 'Tab Size',
-                'Word Wrap': 'Word Wrap',
-                'Cancel': 'Cancel',
-                'Save': 'Save',
-                'File saved successfully': 'File saved successfully',
-                'File downloaded successfully': 'File downloaded successfully',
-                'Code formatted successfully': 'Code formatted successfully',
-                'Code cleared': 'Code cleared',
-                'Copied to clipboard': 'Copied to clipboard',
-                'Pasted from clipboard': 'Pasted from clipboard',
-                'Settings saved': 'Settings saved',
-                'New file created': 'New file created',
-                'File opened': 'File opened'
-            },
-            ar: {
-                'Editor': 'المحرر',
-                'Preview': 'معاينة',
-                'Split': 'تقسيم',
-                'Console': 'كونسول',
-                'Line': 'السطر',
-                'Column': 'العمود',
-                'Size': 'الحجم',
-                'Language': 'اللغة',
-                'Saved': 'محفوظ',
-                'Connected': 'متصل',
-                'Settings': 'الإعدادات',
-                'Auto Save': 'الحفظ التلقائي',
-                'Tab Size': 'حجم التبويب',
-                'Word Wrap': 'التفاف النص',
-                'Cancel': 'إلغاء',
-                'Save': 'حفظ',
-                'File saved successfully': 'تم حفظ الملف بنجاح',
-                'File downloaded successfully': 'تم تحميل الملف بنجاح',
-                'Code formatted successfully': 'تم تنسيق الكود بنجاح',
-                'Code cleared': 'تم مسح الكود',
-                'Copied to clipboard': 'تم النسخ للحافظة',
-                'Pasted from clipboard': 'تم اللصق من الحافظة',
-                'Settings saved': 'تم حفظ الإعدادات',
-                'New file created': 'تم إنشاء ملف جديد',
-                'File opened': 'تم فتح الملف'
+        // File System Manager
+        class FileManager {
+            constructor() {
+                this.files = new Map();
+                this.openFiles = [];
+                this.activeFile = null;
+                this.compressedFiles = [];
+                this.loadFromStorage();
             }
-        };
 
-        let currentLanguage = 'en';
+            loadFromStorage() {
+                const saved = localStorage.getItem('codeforge_files');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        this.files = new Map(data.files || []);
+                        this.compressedFiles = data.compressedFiles || [];
+                    } catch (e) {
+                        console.error('Error loading files:', e);
+                    }
+                }
+            }
+
+            saveToStorage() {
+                try {
+                    const data = {
+                        files: Array.from(this.files.entries()),
+                        compressedFiles: this.compressedFiles
+                    };
+                    localStorage.setItem('codeforge_files', JSON.stringify(data));
+                } catch (e) {
+                    console.error('Error saving files:', e);
+                }
+            }
+
+            createFile(name, content = '', type = 'txt') {
+                const file = {
+                    id: Date.now().toString(),
+                    name,
+                    content,
+                    type,
+                    size: new Blob([content]).size,
+                    created: new Date().toISOString(),
+                    modified: new Date().toISOString()
+                };
+                
+                this.files.set(file.id, file);
+                this.openFile(file.id);
+                this.saveToStorage();
+                this.updateFileTree();
+                return file;
+            }
+
+            openFile(id) {
+                const file = this.files.get(id);
+                if (file && !this.openFiles.includes(id)) {
+                    this.openFiles.push(id);
+                    this.activeFile = id;
+                    this.updateEditorTabs();
+                    this.loadFileContent(file);
+                } else if (file) {
+                    this.activeFile = id;
+                    this.updateEditorTabs();
+                    this.loadFileContent(file);
+                }
+            }
+
+            closeFile(id) {
+                const index = this.openFiles.indexOf(id);
+                if (index > -1) {
+                    this.openFiles.splice(index, 1);
+                    if (this.activeFile === id) {
+                        this.activeFile = this.openFiles[0] || null;
+                    }
+                    this.updateEditorTabs();
+                    if (this.activeFile) {
+                        this.loadFileContent(this.files.get(this.activeFile));
+                    }
+                }
+            }
+
+            deleteFile(id) {
+                this.files.delete(id);
+                this.closeFile(id);
+                this.saveToStorage();
+                this.updateFileTree();
+            }
+
+            updateFile(id, content) {
+                const file = this.files.get(id);
+                if (file) {
+                    file.content = content;
+                    file.size = new Blob([content]).size;
+                    file.modified = new Date().toISOString();
+                    this.saveToStorage();
+                    this.updateFileTree();
+                    this.updateStatusBar();
+                }
+            }
+
+            getFile(id) {
+                return this.files.get(id);
+            }
+
+            getActiveFile() {
+                return this.files.get(this.activeFile);
+            }
+
+            updateFileTree() {
+                const fileTree = document.getElementById('fileTree');
+                fileTree.innerHTML = '';
+                
+                this.files.forEach(file => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = `file-item ${this.activeFile === file.id ? 'active' : ''}`;
+                    fileItem.onclick = () => this.openFile(file.id);
+                    
+                    const icon = this.getFileIcon(file.type);
+                    fileItem.innerHTML = `
+                        <i class="${icon} file-icon"></i>
+                        <span class="file-name truncate">${file.name}</span>
+                        <div class="file-actions">
+                            <button class="file-action-btn" onclick="event.stopPropagation(); fileManager.deleteFile('${file.id}')" title="Delete">
+                                <i class="fas fa-trash text-xs text-red-500"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    fileTree.appendChild(fileItem);
+                });
+            }
+
+            updateEditorTabs() {
+                const tabsContainer = document.getElementById('editorTabs');
+                tabsContainer.innerHTML = '';
+                
+                this.openFiles.forEach(fileId => {
+                    const file = this.files.get(fileId);
+                    if (file) {
+                        const tab = document.createElement('div');
+                        tab.className = `editor-tab ${this.activeFile === fileId ? 'active' : ''}`;
+                        tab.onclick = () => this.openFile(fileId);
+                        
+                        tab.innerHTML = `
+                            <i class="${this.getFileIcon(file.type)}"></i>
+                            <span class="truncate">${file.name}</span>
+                            <button class="file-action-btn" onclick="event.stopPropagation(); fileManager.closeFile('${fileId}')" title="Close">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        `;
+                        
+                        tabsContainer.appendChild(tab);
+                    }
+                });
+            }
+
+            loadFileContent(file) {
+                editor.setValue(file.content);
+                editor.setOption('mode', this.getEditorMode(file.type));
+                document.getElementById('languageMode').textContent = this.getLanguageName(file.type);
+                this.updateStatusBar();
+            }
+
+            updateStatusBar() {
+                const file = this.getActiveFile();
+                if (file) {
+                    document.getElementById('fileSize').textContent = this.formatFileSize(file.size);
+                    document.getElementById('saveStatus').innerHTML = '<i class="fas fa-check-circle"></i> Saved';
+                    document.getElementById('saveStatus').className = 'text-green-400';
+                }
+            }
+
+            getFileIcon(type) {
+                const icons = {
+                    html: 'fas fa-file-code text-orange-500',
+                    css: 'fas fa-file-code text-blue-500',
+                    js: 'fas fa-file-code text-yellow-500',
+                    json: 'fas fa-file-code text-green-500',
+                    txt: 'fas fa-file-alt text-gray-500',
+                    md: 'fas fa-file-alt text-blue-600',
+                    py: 'fas fa-file-code text-blue-400',
+                    java: 'fas fa-file-code text-red-600',
+                    cpp: 'fas fa-file-code text-purple-600',
+                    c: 'fas fa-file-code text-blue-700',
+                    php: 'fas fa-file-code text-purple-500',
+                    rb: 'fas fa-file-code text-red-500',
+                    go: 'fas fa-file-code text-cyan-500',
+                    rs: 'fas fa-file-code text-orange-600',
+                    ts: 'fas fa-file-code text-blue-600',
+                    jsx: 'fas fa-file-code text-cyan-400',
+                    tsx: 'fas fa-file-code text-blue-700',
+                    vue: 'fas fa-file-code text-green-600',
+                    scss: 'fas fa-file-code text-pink-500',
+                    sass: 'fas fa-file-code text-pink-600',
+                    less: 'fas fa-file-code text-blue-500'
+                };
+                
+                return icons[type] || 'fas fa-file text-gray-500';
+            }
+
+            getEditorMode(type) {
+                const modes = {
+                    html: 'htmlmixed',
+                    css: 'css',
+                    js: 'javascript',
+                    json: 'application/json',
+                    py: 'python',
+                    java: 'text/x-java',
+                    cpp: 'text/x-c++src',
+                    c: 'text/x-csrc',
+                    php: 'application/x-httpd-php',
+                    rb: 'application/x-ruby',
+                    go: 'text/x-go',
+                    rs: 'text/x-rustsrc',
+                    ts: 'application/typescript',
+                    jsx: 'text/jsx',
+                    tsx: 'text/typescript-jsx',
+                    scss: 'text/x-scss',
+                    sass: 'text/x-sass',
+                    less: 'text/x-less'
+                };
+                
+                return modes[type] || 'text/plain';
+            }
+
+            getLanguageName(type) {
+                const names = {
+                    html: 'HTML',
+                    css: 'CSS',
+                    js: 'JavaScript',
+                    json: 'JSON',
+                    txt: 'Plain Text',
+                    md: 'Markdown',
+                    py: 'Python',
+                    java: 'Java',
+                    cpp: 'C++',
+                    c: 'C',
+                    php: 'PHP',
+                    rb: 'Ruby',
+                    go: 'Go',
+                    rs: 'Rust',
+                    ts: 'TypeScript',
+                    jsx: 'JSX',
+                    tsx: 'TSX',
+                    vue: 'Vue',
+                    scss: 'SCSS',
+                    sass: 'SASS',
+                    less: 'LESS'
+                };
+                
+                return names[type] || 'Plain Text';
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            addCompressedFile(file) {
+                this.compressedFiles.push(file);
+                this.saveToStorage();
+                this.updateCompressedFilesList();
+            }
+
+            updateCompressedFilesList() {
+                const container = document.getElementById('compressedFiles');
+                container.innerHTML = '';
+                
+                if (this.compressedFiles.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-gray-500 text-center">No compressed files</p>';
+                    return;
+                }
+                
+                this.compressedFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'compression-item';
+                    item.innerHTML = `
+                        <div class="compression-info">
+                            <div class="compression-name">${file.name}</div>
+                            <div class="compression-size">${this.formatFileSize(file.compressedSize)}</div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button class="file-action-btn" onclick="downloadCompressedFile(${index})" title="Download">
+                                <i class="fas fa-download text-xs text-blue-500"></i>
+                            </button>
+                            <button class="file-action-btn" onclick="deleteCompressedFile(${index})" title="Delete">
+                                <i class="fas fa-trash text-xs text-red-500"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+        }
+
+        // Initialize file manager
+        const fileManager = new FileManager();
 
         // Initialize CodeMirror
-        const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
-            mode: 'htmlmixed',
+        const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+            mode: 'text/plain',
             theme: 'monokai',
             lineNumbers: true,
             lineWrapping: true,
@@ -730,596 +1307,416 @@
             indentUnit: 2,
             tabSize: 2,
             indentWithTabs: false,
+            viewportMargin: Infinity,
             extraKeys: {
-                "Ctrl-Space": "autocomplete",
-                "Ctrl-/": "toggleComment",
-                "Ctrl-S": function() {
-                    saveFile();
-                },
-                "Ctrl-O": function() {
-                    document.getElementById('fileInput').click();
-                }
+                "Ctrl-S": () => saveFile(),
+                "Ctrl-O": () => document.getElementById('fileInput').click(),
+                "Ctrl-N": () => showNewFileModal(),
+                "Ctrl-F": () => editor.execCommand('find'),
+                "Ctrl-H": () => editor.execCommand('replace'),
+                "Ctrl-/": () => editor.toggleComment()
             }
         });
 
-        // Split view editor
-        const splitEditor = CodeMirror(document.getElementById('split-editor'), {
-            mode: 'htmlmixed',
-            theme: 'monokai',
-            lineNumbers: true,
-            lineWrapping: true,
-            autoCloseTags: true,
-            autoCloseBrackets: true,
-            matchBrackets: true,
-            indentUnit: 2,
-            tabSize: 2,
-            indentWithTabs: false
+        // Editor event listeners
+        editor.on('change', () => {
+            const file = fileManager.getActiveFile();
+            if (file) {
+                fileManager.updateFile(file.id, editor.getValue());
+                document.getElementById('saveStatus').innerHTML = '<i class="fas fa-edit"></i> Unsaved';
+                document.getElementById('saveStatus').className = 'text-yellow-400';
+            }
+            updateFileSize();
         });
 
-        // Set initial content
-        const initialContent = `<!DOCTYPE html>
+        editor.on('cursorActivity', () => {
+            const cursor = editor.getCursor();
+            document.getElementById('cursorPosition').textContent = `Ln ${cursor.line + 1}, Col ${cursor.ch + 1}`;
+        });
+
+        // File input handler
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    fileManager.createFile(file.name, content, extension);
+                };
+                reader.readAsText(file);
+            });
+        });
+
+        // UI Functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function showNewFileModal() {
+            document.getElementById('newFileModal').classList.add('active');
+            document.getElementById('newFileName').focus();
+        }
+
+        function showCompressionModal() {
+            const modal = document.getElementById('compressionModal');
+            const select = document.getElementById('compressFileSelect');
+            
+            // Populate file options
+            select.innerHTML = '';
+            fileManager.files.forEach((file, id) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = file.name;
+                select.appendChild(option);
+            });
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function createNewFile(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('newFileName').value;
+            const type = document.getElementById('newFileType').value;
+            const content = document.getElementById('newFileContent').value;
+            
+            fileManager.createFile(name, content, type);
+            closeModal('newFileModal');
+            showToast('File created successfully', 'success');
+            
+            // Reset form
+            document.getElementById('newFileName').value = '';
+            document.getElementById('newFileContent').value = '';
+        }
+
+        function compressFile(event) {
+            event.preventDefault();
+            
+            const fileId = document.getElementById('compressFileSelect').value;
+            const file = fileManager.getFile(fileId);
+            const level = parseInt(document.getElementById('compressionLevel').value);
+            const format = document.getElementById('compressionFormat').value;
+            
+            if (!file) return;
+            
+            // Show progress
+            document.getElementById('compressionProgress').classList.remove('hidden');
+            document.getElementById('compressionResults').classList.add('hidden');
+            const progressBar = document.querySelector('#compressionProgress .bg-blue-600');
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                if (progress >= 90) clearInterval(progressInterval);
+            }, 50);
+            
+            // Compress file
+            setTimeout(() => {
+                try {
+                    const data = new TextEncoder().encode(file.content);
+                    let compressed;
+                    
+                    switch (format) {
+                        case 'gzip':
+                            compressed = pako.gzip(data, { level });
+                            break;
+                        case 'deflate':
+                            compressed = pako.deflate(data, { level });
+                            break;
+                        default:
+                            compressed = pako.deflate(data, { level });
+                    }
+                    
+                    const compressedFile = {
+                        name: file.name + '.' + format,
+                        originalSize: data.length,
+                        compressedSize: compressed.length,
+                        ratio: ((1 - compressed.length / data.length) * 100).toFixed(2),
+                        data: compressed,
+                        format,
+                        created: new Date().toISOString()
+                    };
+                    
+                    fileManager.addCompressedFile(compressedFile);
+                    
+                    // Show results
+                    document.getElementById('originalSize').textContent = fileManager.formatFileSize(compressedFile.originalSize);
+                    document.getElementById('compressedSize').textContent = fileManager.formatFileSize(compressedFile.compressedSize);
+                    document.getElementById('compressionRatio').textContent = compressedFile.ratio + '%';
+                    
+                    progressBar.style.width = '100%';
+                    
+                    setTimeout(() => {
+                        document.getElementById('compressionProgress').classList.add('hidden');
+                        document.getElementById('compressionResults').classList.remove('hidden');
+                        closeModal('compressionModal');
+                        showToast('File compressed successfully', 'success');
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Compression error:', error);
+                    showToast('Compression failed', 'error');
+                    document.getElementById('compressionProgress').classList.add('hidden');
+                }
+            }, 500);
+        }
+
+        function downloadCompressedFile(index) {
+            const file = fileManager.compressedFiles[index];
+            if (!file) return;
+            
+            const blob = new Blob([file.data], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function deleteCompressedFile(index) {
+            if (confirm('Are you sure you want to delete this compressed file?')) {
+                fileManager.compressedFiles.splice(index, 1);
+                fileManager.saveToStorage();
+                fileManager.updateCompressedFilesList();
+                showToast('Compressed file deleted', 'info');
+            }
+        }
+
+        function saveFile() {
+            const file = fileManager.getActiveFile();
+            if (!file) return;
+            
+            const blob = new Blob([file.content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            document.getElementById('saveStatus').innerHTML = '<i class="fas fa-check-circle"></i> Saved';
+            document.getElementById('saveStatus').className = 'text-green-400';
+            showToast('File saved successfully', 'success');
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(editor.getValue()).then(() => {
+                showToast('Code copied to clipboard', 'success');
+            }).catch(() => {
+                showToast('Failed to copy code', 'error');
+            });
+        }
+
+        function pasteCode() {
+            navigator.clipboard.readText().then(text => {
+                editor.replaceSelection(text);
+                showToast('Code pasted from clipboard', 'success');
+            }).catch(() => {
+                showToast('Failed to paste code', 'error');
+            });
+        }
+
+        function formatCode() {
+            const file = fileManager.getActiveFile();
+            if (!file) return;
+            
+            let formatted;
+            switch (file.type) {
+                case 'html':
+                case 'jsx':
+                case 'tsx':
+                case 'vue':
+                    formatted = html_beautify(editor.getValue(), {
+                        indent_size: 2,
+                        wrap_line_length: 80
+                    });
+                    break;
+                case 'css':
+                case 'scss':
+                case 'sass':
+                case 'less':
+                    formatted = css_beautify(editor.getValue(), {
+                        indent_size: 2
+                    });
+                    break;
+                case 'js':
+                case 'ts':
+                case 'json':
+                    formatted = js_beautify(editor.getValue(), {
+                        indent_size: 2
+                    });
+                    break;
+                default:
+                    formatted = editor.getValue();
+            }
+            
+            editor.setValue(formatted);
+            showToast('Code formatted successfully', 'success');
+        }
+
+        function minifyCode() {
+            const minified = editor.getValue()
+                .replace(/\s+/g, ' ')
+                .replace(/>\s+</g, '><')
+                .trim();
+            editor.setValue(minified);
+            showToast('Code minified successfully', 'success');
+        }
+
+        function beautifyCode() {
+            formatCode();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        function changeTheme(theme) {
+            editor.setOption('theme', theme);
+        }
+
+        function togglePreview() {
+            const previewPanel = document.getElementById('previewPanel');
+            const isActive = !previewPanel.classList.contains('hidden');
+            
+            if (isActive) {
+                previewPanel.classList.add('hidden');
+                document.querySelector('.editor-container .editor-panel').classList.remove('hidden');
+            } else {
+                previewPanel.classList.remove('hidden');
+                document.querySelector('.editor-container .editor-panel').classList.add('hidden');
+                
+                // Update preview
+                const file = fileManager.getActiveFile();
+                if (file && (file.type === 'html' || file.type === 'jsx' || file.type === 'tsx' || file.type === 'vue')) {
+                    document.getElementById('previewFrame').srcdoc = file.content;
+                }
+            }
+        }
+
+        function updateFileSize() {
+            const size = new Blob([editor.getValue()]).size;
+            document.getElementById('fileSize').textContent = fileManager.formatFileSize(size);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('.toast-icon');
+            const messageEl = toast.querySelector('.toast-message');
+            
+            // Set icon based on type
+            icon.className = 'toast-icon';
+            switch (type) {
+                case 'success':
+                    icon.classList.add('fas', 'fa-check-circle');
+                    break;
+                case 'error':
+                    icon.classList.add('fas', 'fa-exclamation-circle');
+                    break;
+                case 'info':
+                    icon.classList.add('fas', 'fa-info-circle');
+                    break;
+            }
+            
+            messageEl.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load dark mode preference
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            
+            // Create default file if no files exist
+            if (fileManager.files.size === 0) {
+                fileManager.createFile('index.html', `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to CodeForge Studio</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: white;
         }
-        
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            width: 90%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
             backdrop-filter: blur(10px);
         }
-        
         h1 {
             text-align: center;
-            color: #4a5568;
             margin-bottom: 30px;
-            font-size: 2.5em;
         }
-        
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .feature-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            padding: 20px;
-            border-radius: 15px;
-            color: white;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .feature-card i {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        
-        .cta-button {
-            display: block;
-            width: 200px;
-            margin: 30px auto;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 50px;
-            text-align: center;
-            font-weight: bold;
-            transition: transform 0.3s ease;
-        }
-        
-        .cta-button:hover {
-            transform: scale(1.05);
+        .feature {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🚀 Welcome to CodeForge Studio</h1>
-        <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">
-            Your professional online code editor with advanced features
-        </p>
+        <p>Your professional code editor with advanced features.</p>
         
-        <div class="feature-grid">
-            <div class="feature-card">
-                <i class="fas fa-code"></i>
-                <h3>Syntax Highlighting</h3>
-                <p>Beautiful code highlighting with multiple themes</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-eye"></i>
-                <h3>Live Preview</h3>
-                <p>See your changes in real-time</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-magic"></i>
-                <h3>Auto Complete</h3>
-                <p>Smart code completion and suggestions</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-users"></i>
-                <h3>Collaboration</h3>
-                <p>Work together with your team</p>
-            </div>
+        <div class="feature">
+            <h3>📁 File Management</h3>
+            <p>Create, open, and manage multiple files with ease.</p>
         </div>
         
-        <a href="#" class="cta-button">Start Coding</a>
+        <div class="feature">
+            <h3>🗜️ File Compression</h3>
+            <p>Compress your files to save space.</p>
+        </div>
+        
+        <div class="feature">
+            <h3>🎨 Syntax Highlighting</h3>
+            <p>Support for 20+ programming languages.</p>
+        </div>
+        
+        <div class="feature">
+            <h3>⚡ Performance</h3>
+            <p>Optimized for large files and smooth editing.</p>
+        </div>
     </div>
 </body>
-</html>`;
-
-        editor.setValue(initialContent);
-        splitEditor.setValue(initialContent);
-
-        // Language switching
-        function updateLanguage() {
-            const elements = document.querySelectorAll('[data-en]');
-            elements.forEach(el => {
-                const key = el.getAttribute(`data-${currentLanguage}`);
-                if (key) {
-                    el.textContent = key;
-                }
-            });
-        }
-
-        document.getElementById('languageSwitcher').addEventListener('change', (e) => {
-            currentLanguage = e.target.value;
-            document.documentElement.lang = currentLanguage;
-            document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
-            updateLanguage();
-        });
-
-        // Dark mode toggle
-        document.getElementById('darkModeToggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-        });
-
-        // Load dark mode preference
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.body.classList.add('dark-mode');
-        }
-
-        // Tab switching
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tabName = btn.dataset.tab;
-                
-                // Update active tab button
-                tabButtons.forEach(b => {
-                    b.classList.remove('tab-active');
-                    b.classList.add('text-gray-600', 'dark-mode:text-gray-400', 'hover:text-gray-800', 'dark-mode:hover:text-gray-200');
-                });
-                btn.classList.add('tab-active');
-                btn.classList.remove('text-gray-600', 'dark-mode:text-gray-400', 'hover:text-gray-800', 'dark-mode:hover:text-gray-200');
-                
-                // Show corresponding content
-                tabContents.forEach(content => {
-                    content.classList.add('hidden');
-                });
-                
-                if (tabName === 'editor') {
-                    document.getElementById('editor-tab').classList.remove('hidden');
-                } else if (tabName === 'preview') {
-                    document.getElementById('preview-tab').classList.remove('hidden');
-                    updatePreview();
-                } else if (tabName === 'split') {
-                    document.getElementById('split-tab').classList.remove('hidden');
-                    updateSplitPreview();
-                } else if (tabName === 'console') {
-                    document.getElementById('console-tab').classList.remove('hidden');
-                }
-            });
-        });
-
-        // Update preview
-        function updatePreview() {
-            const iframe = document.getElementById('preview-iframe');
-            const content = editor.getValue();
-            iframe.srcdoc = content;
-        }
-
-        function updateSplitPreview() {
-            const iframe = document.getElementById('split-preview');
-            const content = splitEditor.getValue();
-            iframe.srcdoc = content;
-        }
-
-        // Sync editors
-        editor.on('change', () => {
-            splitEditor.setValue(editor.getValue());
+</html>`, 'html');
+            }
+            
+            // Update UI
+            fileManager.updateFileTree();
+            fileManager.updateCompressedFilesList();
             updateFileSize();
-            updateSaveStatus('unsaved');
         });
-
-        splitEditor.on('change', () => {
-            editor.setValue(splitEditor.getValue());
-            updateFileSize();
-            updateSaveStatus('unsaved');
-        });
-
-        // Update cursor position
-        editor.on('cursorActivity', () => {
-            const cursor = editor.getCursor();
-            document.getElementById('line-number').textContent = cursor.line + 1;
-            document.getElementById('column-number').textContent = cursor.ch + 1;
-        });
-
-        splitEditor.on('cursorActivity', () => {
-            const cursor = splitEditor.getCursor();
-            document.getElementById('line-number').textContent = cursor.line + 1;
-            document.getElementById('column-number').textContent = cursor.ch + 1;
-        });
-
-        // Update file size
-        function updateFileSize() {
-            const size = new Blob([editor.getValue()]).size;
-            document.getElementById('file-size').textContent = size;
-        }
-
-        // Update save status
-        function updateSaveStatus(status) {
-            const saveStatus = document.getElementById('save-status');
-            if (status === 'saved') {
-                saveStatus.innerHTML = '<i class="fas fa-check-circle ml-1"></i> ' + translations[currentLanguage]['Saved'];
-                saveStatus.className = 'text-green-400';
-            } else {
-                saveStatus.innerHTML = '<i class="fas fa-edit ml-1"></i> <span data-en="Unsaved" data-ar="غير محفوظ">Unsaved</span>';
-                saveStatus.className = 'text-yellow-400';
-            }
-        }
-
-        // File operations
-        document.getElementById('newFileBtn').addEventListener('click', () => {
-            if (confirm('Create new file? Unsaved changes will be lost.')) {
-                editor.setValue('');
-                splitEditor.setValue('');
-                document.getElementById('fileName').value = 'untitled.html';
-                updateSaveStatus('saved');
-                showToast(translations[currentLanguage]['New file created'], 'success');
-            }
-        });
-
-        document.getElementById('openFileBtn').addEventListener('click', () => {
-            document.getElementById('fileInput').click();
-        });
-
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    editor.setValue(e.target.result);
-                    splitEditor.setValue(e.target.result);
-                    document.getElementById('fileName').value = file.name;
-                    updateSaveStatus('saved');
-                    showToast(translations[currentLanguage]['File opened'], 'success');
-                };
-                reader.readAsText(file);
-            }
-        });
-
-        function saveFile() {
-            const content = editor.getValue();
-            const fileName = document.getElementById('fileName').value || 'untitled.html';
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
-            updateSaveStatus('saved');
-            showToast(translations[currentLanguage]['File downloaded successfully'], 'success');
-        }
-
-        document.getElementById('saveFileBtn').addEventListener('click', saveFile);
-
-        // Toolbar functions
-        document.getElementById('undoBtn').addEventListener('click', () => {
-            editor.undo();
-            splitEditor.undo();
-        });
-
-        document.getElementById('redoBtn').addEventListener('click', () => {
-            editor.redo();
-            splitEditor.redo();
-        });
-
-        document.getElementById('formatBtn').addEventListener('click', () => {
-            const formatted = html_beautify(editor.getValue(), {
-                indent_size: 2,
-                wrap_line_length: 80
-            });
-            editor.setValue(formatted);
-            splitEditor.setValue(formatted);
-            showToast(translations[currentLanguage]['Code formatted successfully'], 'success');
-        });
-
-        document.getElementById('minifyBtn').addEventListener('click', () => {
-            const minified = editor.getValue()
-                .replace(/\s+/g, ' ')
-                .replace(/>\s+</g, '><')
-                .trim();
-            editor.setValue(minified);
-            splitEditor.setValue(minified);
-            showToast('Code minified successfully', 'success');
-        });
-
-        document.getElementById('beautifyBtn').addEventListener('click', () => {
-            const beautified = html_beautify(editor.getValue(), {
-                indent_size: 4,
-                wrap_line_length: 120
-            });
-            editor.setValue(beautified);
-            splitEditor.setValue(beautified);
-            showToast('Code beautified successfully', 'success');
-        });
-
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            if (confirm('Are you sure you want to clear all code?')) {
-                editor.setValue('');
-                splitEditor.setValue('');
-                showToast(translations[currentLanguage]['Code cleared'], 'info');
-            }
-        });
-
-        document.getElementById('copyBtn').addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(editor.getValue());
-                showToast(translations[currentLanguage]['Copied to clipboard'], 'success');
-            } catch (err) {
-                showToast('Failed to copy', 'error');
-            }
-        });
-
-        document.getElementById('pasteBtn').addEventListener('click', async () => {
-            try {
-                const text = await navigator.clipboard.readText();
-                editor.replaceSelection(text);
-                showToast(translations[currentLanguage]['Pasted from clipboard'], 'success');
-            } catch (err) {
-                showToast('Failed to paste', 'error');
-            }
-        });
-
-        // Search and replace
-        document.getElementById('searchBtn').addEventListener('click', () => {
-            editor.execCommand('find');
-        });
-
-        document.getElementById('replaceBtn').addEventListener('click', () => {
-            editor.execCommand('replace');
-        });
-
-        // Theme selection
-        document.getElementById('themeSelect').addEventListener('change', (e) => {
-            const theme = e.target.value;
-            editor.setOption('theme', theme);
-            splitEditor.setOption('theme', theme);
-        });
-
-        // Font size
-        let fontSize = 14;
-        document.getElementById('fontSizeBtn').addEventListener('click', () => {
-            fontSize = fontSize === 14 ? 16 : fontSize === 16 ? 18 : 14;
-            editor.getWrapperElement().style.fontSize = fontSize + 'px';
-            splitEditor.getWrapperElement().style.fontSize = fontSize + 'px';
-            showToast(`Font size: ${fontSize}px`, 'info');
-        });
-
-        // Settings modal
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-            document.getElementById('settingsModal').classList.remove('hidden');
-        });
-
-        document.getElementById('cancelSettingsBtn').addEventListener('click', () => {
-            document.getElementById('settingsModal').classList.add('hidden');
-        });
-
-        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-            const autoSave = document.getElementById('autoSaveSelect').value;
-            const tabSize = document.getElementById('tabSizeSelect').value;
-            const wordWrap = document.getElementById('wordWrapToggle').checked;
-            
-            editor.setOption('indentUnit', parseInt(tabSize));
-            editor.setOption('tabSize', parseInt(tabSize));
-            editor.setOption('lineWrapping', wordWrap);
-            splitEditor.setOption('indentUnit', parseInt(tabSize));
-            splitEditor.setOption('tabSize', parseInt(tabSize));
-            splitEditor.setOption('lineWrapping', wordWrap);
-            
-            localStorage.setItem('autoSave', autoSave);
-            localStorage.setItem('tabSize', tabSize);
-            localStorage.setItem('wordWrap', wordWrap);
-            
-            document.getElementById('settingsModal').classList.add('hidden');
-            showToast(translations[currentLanguage]['Settings saved'], 'success');
-        });
-
-        // User menu
-        document.getElementById('userMenuBtn').addEventListener('click', () => {
-            document.getElementById('userMenu').classList.toggle('hidden');
-        });
-
-        // Close user menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#userMenuBtn') && !e.target.closest('#userMenu')) {
-                document.getElementById('userMenu').classList.add('hidden');
-            }
-        });
-
-        // Resize handle
-        let isResizing = false;
-        const resizeHandle = document.getElementById('resize-handle');
-        const splitTab = document.getElementById('split-tab');
-        const leftPanel = splitTab.children[0];
-        const rightPanel = splitTab.children[2];
-
-        resizeHandle.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            document.body.style.cursor = 'col-resize';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-            
-            const containerRect = splitTab.getBoundingClientRect();
-            const percentage = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-            
-            if (percentage > 20 && percentage < 80) {
-                leftPanel.style.flex = `0 0 ${percentage}%`;
-                rightPanel.style.flex = `0 0 ${100 - percentage}%`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            isResizing = false;
-            document.body.style.cursor = 'default';
-        });
-
-        // Refresh preview
-        document.getElementById('refreshPreviewBtn').addEventListener('click', () => {
-            updatePreview();
-            showToast('Preview refreshed', 'success');
-        });
-
-        // File explorer
-        document.querySelectorAll('.file-tree-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.file-tree-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-                const fileName = item.dataset.file;
-                document.getElementById('fileName').value = fileName;
-                
-                // Load file content based on extension
-                const extension = fileName.split('.').pop().toLowerCase();
-                let mode = 'htmlmixed';
-                let content = '';
-                
-                switch(extension) {
-                    case 'css':
-                        mode = 'css';
-                        content = `/* ${fileName} */\n\nbody {\n    margin: 0;\n    padding: 0;\n    font-family: Arial, sans-serif;\n}`;
-                        break;
-                    case 'js':
-                        mode = 'javascript';
-                        content = `// ${fileName}\n\nconsole.log('Hello from ${fileName}');\n\ndocument.addEventListener('DOMContentLoaded', () => {\n    // Your code here\n});`;
-                        break;
-                    default:
-                        mode = 'htmlmixed';
-                        content = initialContent;
-                }
-                
-                editor.setOption('mode', mode);
-                splitEditor.setOption('mode', mode);
-                editor.setValue(content);
-                splitEditor.setValue(content);
-                
-                // Update language mode display
-                document.getElementById('language-mode').textContent = extension.toUpperCase();
-            });
-        });
-
-        // Auto-save functionality
-        let autoSaveInterval;
-        function setupAutoSave() {
-            const autoSaveSetting = localStorage.getItem('autoSave') || 'off';
-            if (autoSaveInterval) clearInterval(autoSaveInterval);
-            
-            if (autoSaveSetting !== 'off') {
-                const minutes = parseInt(autoSaveSetting);
-                autoSaveInterval = setInterval(() => {
-                    localStorage.setItem('autosave_' + document.getElementById('fileName').value, editor.getValue());
-                    updateSaveStatus('saved');
-                }, minutes * 60 * 1000);
-            }
-        }
-
-        // Load settings
-        window.addEventListener('load', () => {
-            const savedTabSize = localStorage.getItem('tabSize') || '2';
-            const savedWordWrap = localStorage.getItem('wordWrap') === 'true';
-            
-            document.getElementById('tabSizeSelect').value = savedTabSize;
-            document.getElementById('wordWrapToggle').checked = savedWordWrap;
-            document.getElementById('autoSaveSelect').value = localStorage.getItem('autoSave') || 'off';
-            
-            editor.setOption('indentUnit', parseInt(savedTabSize));
-            editor.setOption('tabSize', parseInt(savedTabSize));
-            editor.setOption('lineWrapping', savedWordWrap);
-            splitEditor.setOption('indentUnit', parseInt(savedTabSize));
-            splitEditor.setOption('tabSize', parseInt(savedTabSize));
-            splitEditor.setOption('lineWrapping', savedWordWrap);
-            
-            setupAutoSave();
-        });
-
-        // Toast notification
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
-            const messageEl = document.getElementById('toast-message');
-            
-            messageEl.textContent = message;
-            
-            if (type === 'success') {
-                icon.className = 'fas fa-check-circle ml-2 text-green-400';
-            } else if (type === 'error') {
-                icon.className = 'fas fa-exclamation-circle ml-2 text-red-400';
-            } else if (type === 'info') {
-                icon.className = 'fas fa-info-circle ml-2 text-blue-400';
-            }
-            
-            toast.classList.remove('translate-y-20');
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-20');
-            }, 3000);
-        }
-
-        // Initialize
-        updateLanguage();
-        updateFileSize();
-        updatePreview();
-        updateSplitPreview();
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
+                switch (e.key) {
                     case 's':
                         e.preventDefault();
                         saveFile();
@@ -1330,133 +1727,28 @@
                         break;
                     case 'n':
                         e.preventDefault();
-                        document.getElementById('newFileBtn').click();
+                        showNewFileModal();
                         break;
-                    case 'f':
+                    case 'b':
                         e.preventDefault();
-                        document.getElementById('searchBtn').click();
-                        break;
-                    case 'h':
-                        e.preventDefault();
-                        document.getElementById('replaceBtn').click();
+                        toggleSidebar();
                         break;
                 }
             }
         });
 
-        // Connection status simulation
-        setInterval(() => {
-            const status = document.getElementById('connection-status');
-            const isConnected = Math.random() > 0.1; // 90% chance of being connected
-            
-            if (isConnected) {
-                status.innerHTML = '<i class="fas fa-wifi ml-1"></i> ' + translations[currentLanguage]['Connected'];
-                status.className = 'text-blue-400';
-            } else {
-                status.innerHTML = '<i class="fas fa-wifi-slash ml-1"></i> <span data-en="Disconnected" data-ar="غير متصل">Disconnected</span>';
-                status.className = 'text-red-400';
-            }
-        }, 5000);
-
-        // Git sync simulation
-        document.getElementById('gitSyncBtn').addEventListener('click', () => {
-            const btn = document.getElementById('gitSyncBtn');
-            const icon = btn.querySelector('i');
-            icon.classList.add('fa-spin');
-            
-            setTimeout(() => {
-                icon.classList.remove('fa-spin');
-                showToast('Git sync completed', 'success');
-            }, 2000);
-        });
-
-        // New folder functionality
-        document.getElementById('newFolderBtn').addEventListener('click', () => {
-            const folderName = prompt('Enter folder name:');
-            if (folderName) {
-                const fileExplorer = document.getElementById('fileExplorer');
-                const folderElement = document.createElement('div');
-                folderElement.className = 'file-tree-item';
-                folderElement.innerHTML = `<i class="fas fa-folder ml-2"></i> ${folderName}/`;
-                fileExplorer.insertBefore(folderElement, fileExplorer.firstChild);
-                showToast('Folder created', 'success');
+        // Close modals on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
             }
         });
 
-        // Console functionality
-        const consoleInput = document.querySelector('.terminal-input');
-        const consoleContainer = document.querySelector('.terminal');
-        
-        consoleInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const command = e.target.value.trim();
-                if (command) {
-                    const output = document.createElement('div');
-                    output.className = 'terminal-line';
-                    output.textContent = `$ ${command}`;
-                    consoleContainer.insertBefore(output, consoleInput.parentElement);
-                    
-                    // Process command
-                    processConsoleCommand(command);
-                    
-                    e.target.value = '';
-                    consoleContainer.scrollTop = consoleContainer.scrollHeight;
-                }
-            }
-        });
-
-        function processConsoleCommand(command) {
-            const output = document.createElement('div');
-            output.className = 'terminal-line';
-            
-            switch(command.toLowerCase()) {
-                case 'help':
-                    output.textContent = 'Available commands: help, clear, version, date, time';
-                    break;
-                case 'clear':
-                    const lines = consoleContainer.querySelectorAll('.terminal-line');
-                    lines.forEach(line => {
-                        if (!line.textContent.includes('CodeForge Studio Console') && 
-                            !line.textContent.includes('Type \'help\'')) {
-                            line.remove();
-                        }
-                    });
-                    return;
-                case 'version':
-                    output.textContent = 'CodeForge Studio v1.0.0';
-                    break;
-                case 'date':
-                    output.textContent = new Date().toLocaleDateString();
-                    break;
-                case 'time':
-                    output.textContent = new Date().toLocaleTimeString();
-                    break;
-                default:
-                    output.textContent = `Command not found: ${command}`;
-            }
-            
-            consoleContainer.insertBefore(output, consoleInput.parentElement);
-        }
-
-        // Save to localStorage periodically
-        setInterval(() => {
-            const currentFile = document.getElementById('fileName').value;
-            localStorage.setItem('currentFile', currentFile);
-            localStorage.setItem('fileContent_' + currentFile, editor.getValue());
-        }, 10000);
-
-        // Load saved content on startup
-        window.addEventListener('load', () => {
-            const savedFile = localStorage.getItem('currentFile');
-            if (savedFile) {
-                const savedContent = localStorage.getItem('fileContent_' + savedFile);
-                if (savedContent) {
-                    document.getElementById('fileName').value = savedFile;
-                    editor.setValue(savedContent);
-                    splitEditor.setValue(savedContent);
-                    updateSaveStatus('saved');
-                }
-            }
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            editor.refresh();
         });
     </script>
 </body>
